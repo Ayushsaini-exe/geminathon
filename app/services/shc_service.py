@@ -7,7 +7,6 @@ stores structured soil profiles, and generates fertilizer advice.
 
 import json
 import random
-from uuid import UUID
 
 from google import genai
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,7 +40,7 @@ class SHCService:
 
         # 2. Store soil profile
         profile = SoilProfile(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             shc_id=request.shc_id,
             nitrogen=soil_params.nitrogen,
             phosphorus=soil_params.phosphorus,

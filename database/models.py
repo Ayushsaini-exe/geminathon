@@ -4,6 +4,8 @@ SQLAlchemy ORM models for the AgroFix platform.
 Covers: Farmers, Soil Profiles, Chat History, Crop Events,
 Disease Detection, Pesticide Records, ESG Scores, Harvest Scenarios,
 Digital Twin Zones, and Sustainability Reports.
+
+Uses String-based UUIDs for SQLite compatibility.
 """
 
 import uuid
@@ -16,12 +18,14 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Text,
-    Integer,
     ForeignKey,
     JSON,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
 
 
 class Base(DeclarativeBase):
@@ -33,7 +37,7 @@ class Farmer(Base):
     """Farmer profile — the central entity."""
     __tablename__ = "farmers"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(255), nullable=False)
     phone = Column(String(20), unique=True, nullable=False)
     location = Column(String(512), nullable=True)
@@ -56,8 +60,8 @@ class SoilProfile(Base):
     """Soil Health Card (SHC) data for a farmer."""
     __tablename__ = "soil_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     shc_id = Column(String(100), nullable=False)
     nitrogen = Column(Float, nullable=True)
     phosphorus = Column(Float, nullable=True)
@@ -73,8 +77,8 @@ class ChatHistory(Base):
     """Context memory — stores conversation history per farmer."""
     __tablename__ = "chat_history"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     role = Column(String(20), nullable=False)  # user | assistant | system
     message = Column(Text, nullable=False)
     context = Column(JSON, nullable=True)
@@ -87,8 +91,8 @@ class CropEvent(Base):
     """Tracks crop lifecycle events (planting, fertilizing, harvesting, etc.)."""
     __tablename__ = "crop_events"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     event_type = Column(String(100), nullable=False)
     details = Column(JSON, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
@@ -100,8 +104,8 @@ class DiseaseDetection(Base):
     """Vision model disease detection results."""
     __tablename__ = "disease_detections"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     image_url = Column(String(1024), nullable=True)
     disease = Column(String(255), nullable=False)
     confidence = Column(Float, nullable=False)
@@ -115,8 +119,8 @@ class PesticideRecord(Base):
     """Pesticide batch verification records."""
     __tablename__ = "pesticide_records"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     batch_id = Column(String(255), nullable=False)
     product_name = Column(String(255), nullable=True)
     manufacturer = Column(String(255), nullable=True)
@@ -131,8 +135,8 @@ class ESGScore(Base):
     """Environmental, Social, and Governance sustainability score."""
     __tablename__ = "esg_scores"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     score = Column(Float, nullable=False)
     environmental = Column(Float, default=0.0)
     social = Column(Float, default=0.0)
@@ -148,8 +152,8 @@ class HarvestScenario(Base):
     """Harvest window simulation results and recommendation."""
     __tablename__ = "harvest_scenarios"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     crop = Column(String(100), nullable=True)
     scenarios = Column(JSON, nullable=False)  # list of scenario dicts
     recommendation = Column(Text, nullable=True)
@@ -162,8 +166,8 @@ class DigitalTwinZone(Base):
     """Geo-spatial risk zones for the digital twin farm map."""
     __tablename__ = "digital_twin_zones"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     risk_level = Column(String(20), nullable=False)  # green | yellow | red
@@ -178,8 +182,8 @@ class SustainabilityReport(Base):
     """Generated sustainability PDF reports with QR verification."""
     __tablename__ = "sustainability_reports"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmers.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=False)
     pdf_url = Column(String(1024), nullable=True)
     qr_data = Column(Text, nullable=True)
     report_data = Column(JSON, nullable=True)

@@ -6,7 +6,6 @@ Environmental, Social, and Governance. Updates scores based on
 farming actions and tracks historical trends.
 """
 
-from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -133,7 +132,7 @@ class ESGEngine:
 
         # 4. Store new score
         new_score = ESGScore(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             score=overall,
             environmental=env,
             social=soc,
@@ -174,7 +173,7 @@ class ESGEngine:
         """Get ESG score history for trend analysis."""
         stmt = (
             select(ESGScore)
-            .where(ESGScore.farmer_id == UUID(farmer_id))
+            .where(ESGScore.farmer_id == farmer_id)
             .order_by(ESGScore.timestamp.desc())
             .limit(50)
         )
@@ -199,7 +198,7 @@ class ESGEngine:
         """Fetch the most recent ESG score or return baseline."""
         stmt = (
             select(ESGScore)
-            .where(ESGScore.farmer_id == UUID(farmer_id))
+            .where(ESGScore.farmer_id == farmer_id)
             .order_by(ESGScore.timestamp.desc())
             .limit(1)
         )

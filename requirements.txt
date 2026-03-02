@@ -7,10 +7,9 @@ pydantic==2.10.4
 pydantic-settings==2.7.1
 python-dotenv==1.0.1
 
-# Database
+# Database (SQLite with async support)
 sqlalchemy[asyncio]==2.0.36
-asyncpg==0.30.0
-alembic==1.14.1
+aiosqlite==0.20.0
 
 # AI & ML
 google-genai==1.5.0
@@ -31,12 +30,5 @@ qrcode[pil]==8.0
 # Image Processing
 Pillow==11.1.0
 
-# S3 Storage
-boto3==1.36.2
-
-# Redis
-redis==5.2.1
-
 # Utilities
 numpy==2.2.1
-pandas==2.2.3

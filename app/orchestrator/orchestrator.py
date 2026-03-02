@@ -6,7 +6,6 @@ merges context from memory, and returns structured JSON responses.
 """
 
 import json
-from uuid import UUID
 
 from google import genai
 from sqlalchemy import select
@@ -146,7 +145,7 @@ Respond with ONLY the category name, nothing else."""
         try:
             stmt = (
                 select(ChatHistory)
-                .where(ChatHistory.farmer_id == UUID(farmer_id))
+                .where(ChatHistory.farmer_id == farmer_id)
                 .order_by(ChatHistory.timestamp.desc())
                 .limit(10)
             )
@@ -246,7 +245,7 @@ Respond with ONLY the category name, nothing else."""
         """Store the orchestrator interaction in chat history."""
         try:
             turn = ChatHistory(
-                farmer_id=UUID(farmer_id),
+                farmer_id=farmer_id,
                 role="system",
                 message=f"[Orchestrator] Intent: {intent} | Message: {message[:200]}",
                 context={"intent": intent},

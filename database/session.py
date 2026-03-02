@@ -1,5 +1,5 @@
 """
-Async SQLAlchemy database session management.
+Async SQLAlchemy database session management — SQLite (local).
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -7,12 +7,12 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+# SQLite with aiosqlite for async support
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.APP_DEBUG,
     future=True,
-    pool_size=20,
-    max_overflow=10,
+    connect_args={"check_same_thread": False},  # Required for SQLite
 )
 
 async_session_factory = async_sessionmaker(

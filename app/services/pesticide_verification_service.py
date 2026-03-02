@@ -8,7 +8,6 @@ then cross-checks against a mock CIBRC database.
 import base64
 import io
 import re
-from uuid import UUID
 
 from PIL import Image
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -119,7 +118,7 @@ class PesticideVerificationService:
 
         # Step 3: Store record
         record = PesticideRecord(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             batch_id=batch_id,
             product_name=product_name,
             manufacturer=manufacturer,

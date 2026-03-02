@@ -54,7 +54,7 @@ async def create_farmer(data: FarmerCreate, db: AsyncSession = Depends(get_db)):
 @router.get("/{farmer_id}", response_model=FarmerResponse)
 async def get_farmer(farmer_id: str, db: AsyncSession = Depends(get_db)):
     """Get a farmer by ID."""
-    farmer = await db.get(Farmer, uuid.UUID(farmer_id))
+    farmer = await db.get(Farmer, farmer_id)
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer not found")
     return FarmerResponse(

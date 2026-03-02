@@ -8,7 +8,6 @@ mandi prices, and transport costs to recommend optimal harvest timing.
 import json
 import random
 from datetime import datetime, timedelta
-from uuid import UUID
 
 import httpx
 from google import genai
@@ -68,7 +67,7 @@ class HarvestEngine:
 
         # 5. Store in DB
         scenario_record = HarvestScenario(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             crop=request.crop,
             scenarios=[s.model_dump() for s in scenarios],
             recommendation=recommendation,

@@ -9,8 +9,8 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Central configuration for the AgroFix platform."""
 
-    # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/agrofix"
+    # Database (SQLite local)
+    DATABASE_URL: str = "sqlite+aiosqlite:///./agrofix.db"
 
     # Gemini AI
     GEMINI_API_KEY: str = ""
@@ -21,14 +21,8 @@ class Settings(BaseSettings):
     # Weather API
     OPENWEATHER_API_KEY: str = ""
 
-    # S3 Storage
-    S3_ENDPOINT: str = "http://localhost:9000"
-    S3_BUCKET: str = "agrofix-uploads"
-    S3_ACCESS_KEY: str = "minioadmin"
-    S3_SECRET_KEY: str = "minioadmin"
-
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # Local Storage (replaces S3)
+    LOCAL_STORAGE_DIR: str = "./uploads"
 
     # Server
     APP_HOST: str = "0.0.0.0"

@@ -6,7 +6,6 @@ disease events, soil data, weather stress, and chemical usage.
 Calculates per-zone risk levels (green/yellow/red).
 """
 
-from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +34,7 @@ class DigitalTwinService:
         )
 
         zone = DigitalTwinZone(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             lat=request.lat,
             lng=request.lng,
             risk_level=request.risk_level,
@@ -55,7 +54,7 @@ class DigitalTwinService:
         """
         stmt = (
             select(DigitalTwinZone)
-            .where(DigitalTwinZone.farmer_id == UUID(farmer_id))
+            .where(DigitalTwinZone.farmer_id == farmer_id)
             .order_by(DigitalTwinZone.timestamp.desc())
         )
         result = await db.execute(stmt)

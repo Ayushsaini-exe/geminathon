@@ -10,7 +10,6 @@ import json
 import os
 import uuid as uuid_mod
 from datetime import datetime
-from uuid import UUID
 
 import qrcode
 from reportlab.lib import colors
@@ -81,7 +80,7 @@ class ReportService:
 
         # 4. Store record
         report_record = SustainabilityReport(
-            farmer_id=UUID(request.farmer_id),
+            farmer_id=request.farmer_id,
             pdf_url=pdf_path,
             qr_data=qr_data,
             report_data=report_data,
@@ -103,7 +102,7 @@ class ReportService:
 
     async def _gather_data(self, farmer_id: str, db: AsyncSession) -> dict:
         """Fetch all farmer data for the report."""
-        fid = UUID(farmer_id)
+        fid = farmer_id
         data = {}
 
         # Farmer profile

@@ -22,7 +22,7 @@ here all the modules's architecture and flow ar defined, the project should foll
               ↓
      [ Response + Dashboard Update ]
               ↓
-     [ PostgreSQL | Vector DB | S3 ]
+     [ SQLite | ChromaDB | Local FS ]
 
 Put this as Slide 1: “System Overview”
 
@@ -30,7 +30,7 @@ Put this as Slide 1: “System Overview”
 🎯 Purpose: Explainable Crop Advisory
 User Question
       ↓
-Fetch Farmer Profile (Postgres)
+Fetch Farmer Profile (SQLite)
       ↓
 Fetch Weather Data
       ↓

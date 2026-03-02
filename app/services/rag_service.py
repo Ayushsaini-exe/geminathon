@@ -6,7 +6,6 @@ and generates structured advisory responses via Gemini.
 """
 
 import json
-from uuid import UUID
 
 from google import genai
 from sqlalchemy import select
@@ -47,41 +46,69 @@ class RAGService:
         # 3. Build prompt
         prompt = self._build_prompt(request.question, farmer_context, rag_results)
 
-        # 4. Call Gemini
-        response = self.client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config=genai.types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema={
-                    "type": "object",
-                    "properties": {
-                        "recommendation": {"type": "string"},
-                        "risk_level": {"type": "string"},
-                        "cost_impact": {"type": "string"},
-                        "esg_impact": {"type": "string"},
-                        "citations": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "source": {"type": "string"},
-                                    "page": {"type": "string"},
+        # 4. Call Gemini and parse response
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=genai.types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema={
+                        "type": "object",
+                        "properties": {
+                            "recommendation": {"type": "string"},
+                            "risk_level": {"type": "string"},
+                            "cost_impact": {"type": "string"},
+                            "esg_impact": {"type": "string"},
+                            "citations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "source": {"type": "string"},
+                                        "page": {"type": "string"},
+                                    },
                                 },
                             },
                         },
+                        "required": [
+                            "recommendation",
+                            "risk_level",
+                            "cost_impact",
+                            "esg_impact",
+                        ],
                     },
-                    "required": [
-                        "recommendation",
-                        "risk_level",
-                        "cost_impact",
-                        "esg_impact",
-                    ],
-                },
-            ),
-        )
+                ),
+            )
 
-        result = json.loads(response.text)
+            raw = response.text
+            if not raw or not raw.strip():
+                raise ValueError("Empty response from Gemini")
+            result = json.loads(raw)
+
+        except Exception as e:
+            logger.warning(f"Gemini structured call failed, trying fallback: {e}")
+            try:
+                fallback = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                )
+                result = {
+                    "recommendation": fallback.text or "Unable to generate advice.",
+                    "risk_level": "medium",
+                    "cost_impact": "Consult local officer for cost details.",
+                    "esg_impact": "Consult local officer for ESG details.",
+                    "citations": [],
+                }
+            except Exception as e2:
+                logger.error(f"Gemini fallback also failed: {e2}")
+                result = {
+                    "recommendation": f"AI advisory temporarily unavailable ({type(e).__name__}). Please try again shortly.",
+                    "risk_level": "medium",
+                    "cost_impact": "N/A",
+                    "esg_impact": "N/A",
+                    "citations": [],
+                }
 
         # 5. Store chat history
         await self._store_chat(request.farmer_id, request.question, result, db)
@@ -104,7 +131,7 @@ class RAGService:
         """Fetch farmer profile and recent soil data for context."""
         context = {}
         try:
-            farmer = await db.get(Farmer, UUID(farmer_id))
+            farmer = await db.get(Farmer, farmer_id)
             if farmer:
                 context["name"] = farmer.name
                 context["location"] = farmer.location
@@ -112,7 +139,7 @@ class RAGService:
 
             stmt = (
                 select(SoilProfile)
-                .where(SoilProfile.farmer_id == UUID(farmer_id))
+                .where(SoilProfile.farmer_id == farmer_id)
                 .order_by(SoilProfile.fetched_at.desc())
                 .limit(1)
             )
@@ -185,12 +212,12 @@ Be specific, practical, and cite the knowledge base documents when possible."""
         """Store the Q&A exchange in chat history."""
         try:
             user_msg = ChatHistory(
-                farmer_id=UUID(farmer_id),
+                farmer_id=farmer_id,
                 role="user",
                 message=question,
             )
             assistant_msg = ChatHistory(
-                farmer_id=UUID(farmer_id),
+                farmer_id=farmer_id,
                 role="assistant",
                 message=response.get("recommendation", ""),
                 context=response,
