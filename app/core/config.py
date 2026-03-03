@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     APP_PORT: int = 8000
     APP_DEBUG: bool = True
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "allow"}
 
 
 @lru_cache()

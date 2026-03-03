@@ -37,8 +37,17 @@ async def lifespan(app: FastAPI):
 
     # Initialize ChromaDB
     from vectorstore.chroma_setup import get_collection
+    
+    # Safely handle the mocked collection if chromadb is unavailable
     collection = get_collection()
-    logger.info(f"✅ ChromaDB ready — {collection.count()} documents")
+    if collection:
+        try:
+            doc_count = collection.count()
+            logger.info(f"✅ ChromaDB ready — {doc_count} documents")
+        except AttributeError:
+             logger.info("⚠️ ChromaDB mocked — ready")
+    else:
+        logger.info("⚠️ ChromaDB disabled/unavailable")
 
     yield
 
