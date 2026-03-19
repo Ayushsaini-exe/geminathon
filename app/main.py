@@ -4,16 +4,20 @@ AgroFix — AI Agricultural Intelligence Platform.
 Main FastAPI application with lifespan handler, CORS, and all routers.
 """
 
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.core.logging import logger
 from database.session import init_db
 
 # Import all routers
 from app.api.health import router as health_router
+from app.api.auth import router as auth_router
 from app.api.farmers import router as farmers_router
 from app.api.rag import router as rag_router
 from app.api.shc import router as shc_router
@@ -24,6 +28,7 @@ from app.api.esg import router as esg_router
 from app.api.digital_twin import router as digital_twin_router
 from app.api.report import router as report_router
 from app.api.orchestrator import router as orchestrator_router
+from app.api.manager import router as manager_router
 
 
 @asynccontextmanager
@@ -73,6 +78,7 @@ app.add_middleware(
 
 # Register all routers
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(farmers_router)
 app.include_router(orchestrator_router)
 app.include_router(rag_router)
@@ -83,17 +89,27 @@ app.include_router(harvest_router)
 app.include_router(esg_router)
 app.include_router(digital_twin_router)
 app.include_router(report_router)
+app.include_router(manager_router)
 
+# Serve frontend static files
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="assets")
 
-@app.get("/")
-async def root():
-    """Root endpoint — API info."""
-    return {
-        "name": "AgroFix AI Platform",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "modules": [
-            "orchestrator", "rag", "shc", "pesticide",
-            "vision", "harvest", "esg", "digital_twin", "report",
-        ],
-    }
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve the React SPA — all non-API routes go to index.html."""
+        file_path = os.path.join(FRONTEND_DIR, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+else:
+    @app.get("/")
+    async def root():
+        """Root endpoint — API info."""
+        return {
+            "name": "AgroFix AI Platform",
+            "version": "1.0.0",
+            "docs": "/docs",
+            "note": "Frontend not built yet. Run: cd frontend && npm run build",
+        }

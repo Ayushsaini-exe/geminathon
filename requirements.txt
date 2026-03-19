@@ -32,3 +32,7 @@ Pillow==11.1.0
 
 # Utilities
 numpy==2.2.1
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]

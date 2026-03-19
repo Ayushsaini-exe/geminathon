@@ -18,7 +18,10 @@ env/
 # Data
 chroma_data/
 reports/
+uploads/
 *.pdf
+*.pth
+agrofix.db
 
 # IDE
 .vscode/

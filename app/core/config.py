@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Gemini AI
     GEMINI_API_KEY: str = ""
 
+    # JWT Auth
+    JWT_SECRET_KEY: str = "agrofix-super-secret-key-change-in-production"
+
     # ChromaDB
     CHROMA_PERSIST_DIR: str = "./chroma_data"
 

@@ -33,6 +33,20 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    """Authentication user — linked to a Farmer profile for role=farmer."""
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), nullable=False, default="farmer")  # farmer | manager
+    farmer_id = Column(String(36), ForeignKey("farmers.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    farmer = relationship("Farmer", lazy="selectin")
+
+
 class Farmer(Base):
     """Farmer profile — the central entity."""
     __tablename__ = "farmers"

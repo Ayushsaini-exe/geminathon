@@ -2,11 +2,10 @@
 Farmer management API routes.
 """
 
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Farmer
@@ -40,7 +39,14 @@ async def create_farmer(data: FarmerCreate, db: AsyncSession = Depends(get_db)):
         language=data.language,
     )
     db.add(farmer)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail=f"A farmer with phone '{data.phone}' already exists.",
+        )
     await db.refresh(farmer)
     return FarmerResponse(
         id=str(farmer.id),

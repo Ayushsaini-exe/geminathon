@@ -63,8 +63,7 @@ DISEASE_CLASSES = [
     "Tomato___healthy",
 ]
 
-# Model weights path (state_dict extracted from the full model)
-MODEL_FULL_PATH = os.path.join("app", "models", "plant-disease-model-complete.pth")
+# Model weights path
 MODEL_SD_PATH = os.path.join("app", "models", "plant-disease-model-state-dict.pth")
 
 
@@ -154,6 +153,10 @@ class VisionService:
             self._transform = transforms.Compose([
                 transforms.Resize((32, 32)),
                 transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                ),
             ])
 
     def _get_model(self):
@@ -162,7 +165,6 @@ class VisionService:
         if self._model is None:
             model = _build_resnet9(num_classes=len(DISEASE_CLASSES))
 
-            # Try state_dict first (faster, safer), fallback to full model
             if os.path.exists(MODEL_SD_PATH):
                 state = self._torch.load(
                     MODEL_SD_PATH,
@@ -170,23 +172,9 @@ class VisionService:
                     weights_only=True,
                 )
                 model.load_state_dict(state)
-                logger.info(f"✅ Loaded trained model (state_dict) from {MODEL_SD_PATH}")
-            elif os.path.exists(MODEL_FULL_PATH):
-                logger.info("Extracting state_dict from full model save...")
-                full = self._torch.load(
-                    MODEL_FULL_PATH,
-                    map_location=self._device,
-                    weights_only=False,
-                )
-                state = full.state_dict()
-                model.load_state_dict(state)
-                # Save for faster future loads
-                self._torch.save(state, MODEL_SD_PATH)
-                logger.info(f"✅ Loaded & cached state_dict from {MODEL_FULL_PATH}")
+                logger.info(f"✅ Loaded trained model from {MODEL_SD_PATH}")
             else:
-                logger.warning(
-                    f"⚠️ No model files found — using random weights"
-                )
+                logger.warning("⚠️ No model file found — using random weights")
 
             model.to(self._device)
             model.eval()
